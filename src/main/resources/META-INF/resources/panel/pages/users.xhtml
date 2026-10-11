@@ -1,0 +1,86 @@
+<ui:composition template="/panel/control-plane.xhtml" xmlns:h="jakarta.faces.html" xmlns:p="primefaces" xmlns:f="jakarta.faces.core" xmlns:ui="jakarta.faces.facelets">
+  <ui:define name="content">
+    <p:growl id="messages" showDetail="true" life="5000" />
+    <h:form id="usersListForm">
+      <main class="page-shell">
+        <header class="page-header">
+          <div>
+            <span class="eyebrow">CONTROL PLANE</span>
+            <h1>User Management</h1>
+            <p>Create and manage users who can access the gateway control plane</p>
+          </div>
+          <div class="page-header-actions"><p:commandButton value="How to use" icon="pi pi-question-circle" type="button" styleClass="help-button" onclick="PF('pageHelpDialog').show()" /><p:commandButton value="New User" icon="pi pi-plus" process="@this" actionListener="#{gatewayUsersView.openNew}" update=":userDialogForm" oncomplete="PF('userDialog').show()" /></div>
+        </header>
+        <section class="stat-grid">
+          <article class="stat-card">
+            <strong>#{gatewayUsersView.users.size()}</strong>
+            <span>Total Users</span>
+          </article>
+          <article class="stat-card">
+            <strong>#{gatewayUsersView.enabledCount}</strong>
+            <span>Active Users</span>
+          </article>
+        </section>
+        <section class="content-card">
+          <p:dataTable id="usersTable" value="#{gatewayUsersView.users}" var="user" paginator="true" rows="10" paginatorPosition="bottom" emptyMessage="No users have been registered" styleClass="route-table">
+            <p:column headerText="Username" sortBy="#{user.username}">
+              <h:outputText value="#{user.username}" />
+            </p:column>
+            <p:column headerText="Name">
+              <h:outputText value="#{user.firstName} #{user.lastName}" />
+            </p:column>
+            <p:column headerText="Status">
+              <span class="status-pill #{user.enabled ? 'is-active' : 'is-disabled'}">
+                <h:outputText value="#{user.enabled ? 'Active' : 'Disabled'}" />
+              </span>
+            </p:column>
+            <p:column headerText="Actions" styleClass="actions-column">
+              <p:commandButton icon="pi pi-pencil" title="Edit" styleClass="ui-button-flat ui-button-secondary" process="@this" actionListener="#{gatewayUsersView.openEdit(user.id)}" update=":userDialogForm" oncomplete="PF('userDialog').show()" />
+              <p:commandButton icon="pi pi-trash" title="Delete" styleClass="ui-button-flat ui-button-danger" process="@this" actionListener="#{gatewayUsersView.delete(user)}" update="usersListForm messages">
+                <p:confirm header="Delete User" message="Delete user #{user.username}?" icon="pi pi-exclamation-triangle" />
+              </p:commandButton>
+            </p:column>
+          </p:dataTable>
+        </section>
+      </main>
+      <p:confirmDialog global="true" responsive="true">
+        <p:commandButton value="Delete" type="button" styleClass="ui-confirmdialog-yes ui-button-danger" />
+        <p:commandButton value="Cancel" type="button" styleClass="ui-confirmdialog-no ui-button-secondary" />
+      </p:confirmDialog>
+    </h:form>
+    <p:dialog widgetVar="userDialog" header="User Configuration" modal="true" responsive="true" width="620" closeOnEscape="true" styleClass="route-dialog">
+      <h:form id="userDialogForm">
+        <p:messages id="dialogMessages" showDetail="true" closable="true" />
+        <div class="form-grid">
+          <div class="field">
+            <p:outputLabel for="username" value="Username" />
+            <p:inputText id="username" value="#{gatewayUsersView.user.username}" required="true" requiredMessage="Username is required" />
+          </div>
+          <div class="field">
+            <p:outputLabel for="password" value="Password" />
+            <p:password id="password" value="#{gatewayUsersView.rawPassword}" feedback="true" required="#{gatewayUsersView.user.id == null}" requiredMessage="Password is required for a new user" />
+            <h:outputText value="Leave blank when editing to keep the current password." rendered="#{gatewayUsersView.user.id != null}" />
+          </div>
+          <div class="field">
+            <p:outputLabel for="firstName" value="First name" />
+            <p:inputText id="firstName" value="#{gatewayUsersView.user.firstName}" />
+          </div>
+          <div class="field">
+            <p:outputLabel for="lastName" value="Last name" />
+            <p:inputText id="lastName" value="#{gatewayUsersView.user.lastName}" />
+          </div>
+          <div class="field toggle-field">
+            <p:outputLabel for="enabled" value="User status" />
+            <p:toggleSwitch id="enabled" value="#{gatewayUsersView.user.enabled}" />
+            <span>Enable user</span>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <p:commandButton value="Cancel" type="button" styleClass="ui-button-secondary ui-button-outlined" onclick="PF('userDialog').hide()" />
+          <p:commandButton value="Save" icon="pi pi-check" actionListener="#{gatewayUsersView.save}" process="@form" update="@form :usersListForm :messages" oncomplete="if (!args.validationFailed) PF('userDialog').hide()" />
+        </div>
+      </h:form>
+    </p:dialog>
+    <ui:include src="/panel/includes/page-help.xhtml"><ui:param name="helpKey" value="users" /></ui:include>
+  </ui:define>
+</ui:composition>

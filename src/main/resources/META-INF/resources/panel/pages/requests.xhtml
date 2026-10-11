@@ -1,0 +1,106 @@
+<ui:composition template="/panel/control-plane.xhtml" xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html" xmlns:p="primefaces" xmlns:f="jakarta.faces.core" xmlns:ui="jakarta.faces.facelets">
+  <ui:define name="content">
+  <p:growl id="requestMessages" showDetail="true" life="5000" />
+  <h:form id="requestListForm">
+    <main class="page-shell">
+      <header class="page-header">
+        <div>
+          <span class="eyebrow">CONTROL PLANE</span>
+          <h1>Request Management</h1>
+          <p>Manage request and response filters for your gateway routes</p>
+        </div>
+        <div class="page-header-actions"><p:commandButton value="How to use" icon="pi pi-question-circle" type="button" styleClass="help-button" onclick="PF('pageHelpDialog').show()" /><p:commandButton value="New Filter" icon="pi pi-plus" process="@this" actionListener="#{requestManagementView.openNew}" update=":requestDialogForm" oncomplete="PF('requestDialog').show()" /></div>
+      </header>
+      <section class="stat-grid">
+        <article class="stat-card">
+          <strong>#{requestManagementView.filters.size()}</strong>
+          <span>Total Filters</span>
+        </article>
+        <article class="stat-card">
+          <strong>#{requestManagementView.enabledCount}</strong>
+          <span>Active Filters</span>
+        </article>
+      </section>
+      <section class="content-card">
+        <p:dataTable id="filtersTable" value="#{requestManagementView.filters}" var="filter" paginator="true" rows="10"
+                     paginatorPosition="bottom" styleClass="route-table"
+                     emptyMessage="No filters registered. Create a route, then add its request or response filters.">
+
+          <p:column headerText="Route Name" filterBy="#{filter.route.routeName}" filterMatchMode="contains" sortBy="#{filter.route.routeName}">
+            <h:outputText value="#{filter.route.routeName}" />
+          </p:column>
+          <p:column headerText="Phase">
+            <h:outputText value="#{filter.filterType.phase}" />
+          </p:column>
+          <p:column headerText="Type">
+            <h:outputText value="#{filter.filterType}" />
+          </p:column>
+          <p:column headerText="Status">
+            <span class="status-pill #{filter.enabled ? 'is-active' : 'is-disabled'}">
+                            #{filter.enabled ? 'Active' : 'Disabled'}
+                        </span>
+          </p:column>
+          <p:column headerText="Registered By" styleClass="audit-user-column">
+            <h:outputText value="#{filter.registerUser}" />
+          </p:column>
+          <p:column headerText="Created At" styleClass="audit-date-column">
+            <h:outputText value="#{requestManagementView.formatAuditDate(filter.createdAt)}" />
+          </p:column>
+          <p:column headerText="Updated At" styleClass="audit-date-column">
+            <h:outputText value="#{requestManagementView.formatAuditDate(filter.updatedAt)}" />
+          </p:column>
+          <p:column headerText="Actions" styleClass="actions-column">
+            <p:commandButton icon="pi pi-pencil" title="Edit filter" styleClass="ui-button-flat ui-button-secondary" process="@this" actionListener="#{requestManagementView.openEdit(filter.id)}" update=":requestDialogForm :requestMessages" oncomplete="if (!args.validationFailed) PF('requestDialog').show()" />
+            <p:commandButton icon="pi pi-trash" title="Delete filter" styleClass="ui-button-flat ui-button-danger" process="@this" actionListener="#{requestManagementView.delete(filter)}" update="@form :requestMessages">
+              <p:confirm header="Delete Filter" message="Delete this filter and publish the change?" icon="pi pi-exclamation-triangle" />
+            </p:commandButton>
+          </p:column>
+        </p:dataTable>
+      </section>
+    </main>
+    <p:confirmDialog global="true" responsive="true">
+      <p:commandButton value="Delete" type="button" styleClass="ui-confirmdialog-yes ui-button-danger" />
+      <p:commandButton value="Cancel" type="button" styleClass="ui-confirmdialog-no ui-button-secondary" />
+    </p:confirmDialog>
+  </h:form>
+  <p:dialog id="requestDialog" widgetVar="requestDialog" header="Filter Configuration" modal="true" responsive="true" width="650" closeOnEscape="true" styleClass="route-dialog">
+    <h:form id="requestDialogForm">
+      <p:messages showDetail="true" />
+      <div class="form-grid">
+        <div class="field field-wide">
+          <p:outputLabel for="route" value="Route" />
+          <p:selectOneMenu id="route" value="#{requestManagementView.filter.route.id}" required="true" requiredMessage="Select a route">
+            <f:selectItem itemLabel="Select a route" itemValue="#{null}" noSelectionOption="true" />
+            <f:selectItems value="#{requestManagementView.routes}" var="route" itemLabel="#{route.routeId}" itemValue="#{route.id}" />
+          </p:selectOneMenu>
+        </div>
+        <div class="field field-wide">
+          <p:outputLabel for="type" value="Filter type" />
+          <p:selectOneMenu id="type" value="#{requestManagementView.filter.filterType}" required="true" requiredMessage="Select a supported filter type">
+            <f:selectItem itemLabel="Select a route" itemValue="#{null}" noSelectionOption="true" />
+            <f:selectItems value="#{requestManagementView.SUPPORTED_TYPES}" var="type" itemLabel="#{type.phase} / #{type.name()}" itemValue="#{type}" />
+            <p:ajax process="@this" update="configuration" resetValues="true" />
+          </p:selectOneMenu>
+        </div>
+        <p:outputPanel id="configuration" styleClass="field field-wide">
+          <p:outputLabel for="name" value="#{requestManagementView.getNameLabel(requestManagementView.filter.filterType)}" />
+          <p:inputText id="name" value="#{requestManagementView.filter.name}" required="true" requiredMessage="Configuration is required" />
+          <h:outputText value="#{requestManagementView.getHint(requestManagementView.filter.filterType)}" />
+          <p:outputLabel for="value" value="Value" rendered="#{requestManagementView.isValueRequired(requestManagementView.filter.filterType)}" />
+          <p:inputText id="value" value="#{requestManagementView.filter.value}" rendered="#{requestManagementView.isValueRequired(requestManagementView.filter.filterType)}" required="true" requiredMessage="Value is required" />
+        </p:outputPanel>
+        <div class="field toggle-field">
+          <p:outputLabel for="enabled" value="Filter status" />
+          <p:toggleSwitch id="enabled" value="#{requestManagementView.filter.enabled}" />
+          <span>Enable filter</span>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <p:commandButton value="Cancel" type="button" styleClass="ui-button-secondary ui-button-outlined" onclick="PF('requestDialog').hide()" />
+        <p:commandButton value="Save and Publish" icon="pi pi-check" process="@form" actionListener="#{requestManagementView.save}" update="@form :requestListForm :requestMessages" oncomplete="if (!args.validationFailed) PF('requestDialog').hide()" />
+      </div>
+    </h:form>
+  </p:dialog>
+    <ui:include src="/panel/includes/page-help.xhtml"><ui:param name="helpKey" value="requests" /></ui:include>
+  </ui:define>
+</ui:composition>

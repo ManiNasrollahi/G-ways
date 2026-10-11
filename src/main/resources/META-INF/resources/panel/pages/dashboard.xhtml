@@ -1,0 +1,53 @@
+<ui:composition template="/panel/control-plane.xhtml" xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html" xmlns:p="primefaces" xmlns:ui="jakarta.faces.facelets">
+  <ui:define name="content">
+    <h:outputStylesheet name="/panel/css/dashboard.css" />
+    <h:form id="dashboardForm">
+      <main class="page-shell dashboard-page">
+        <p:messages id="messages" showDetail="true" />
+        <header class="page-header">
+          <div><span class="eyebrow">CONTROL PLANE / REPORTS</span><h1>Route configuration dashboard</h1><p>Every route, predicate, filter, and resilience policy in one report.</p></div>
+          <div class="page-header-actions">
+            <p:commandButton value="How to use" type="button" icon="pi pi-question-circle" styleClass="help-button" onclick="PF('dashboardHelp').show()" />
+            <p:commandButton value="Refresh report" icon="pi pi-refresh" actionListener="#{dashboardView.refresh}" process="@this" update="@form" />
+          </div>
+        </header>
+        <section class="stat-grid">
+          <article class="stat-card"><strong>#{dashboardView.routes.size()}</strong><span>Total routes</span></article>
+          <article class="stat-card"><strong>#{dashboardView.enabledCount}</strong><span>Enabled routes</span></article>
+          <article class="stat-card"><strong>#{dashboardView.filterCount}</strong><span>Configured filters and policies</span></article>
+          <article class="stat-card"><strong>#{dashboardView.warningCount}</strong><span>Routes requiring review</span></article>
+        </section>
+        <p class="dashboard-caption">Configuration report · Updated <h:outputText value="#{dashboardView.formatAuditDate(dashboardView.refreshedAt)}" />. Enabled indicates saved configuration, not upstream health or live circuit-breaker state. Global CORS, blacklist, and trusted proxies are managed separately.</p>
+        <p:outputPanel rendered="#{empty dashboardView.routes}" styleClass="content-card"><h2>No routes configured</h2><p>Create a route to see its configuration here.</p><h:link outcome="/panel/pages/routes" value="Manage routes" /></p:outputPanel>
+        <ui:repeat value="#{dashboardView.routes}" var="route">
+          <section class="content-card dashboard-route">
+            <div class="dashboard-route-heading">
+              <div><h2><h:outputText value="#{route.name}" /></h2><p><h:outputText value="#{route.routeId}" /> · Priority #{route.priority}</p></div>
+              <span class="status-pill #{route.enabled ? 'is-active' : 'is-disabled'}">#{route.enabled ? 'Enabled' : 'Disabled'}</span>
+            </div>
+            <p class="dashboard-destination"><strong>Destination</strong> <h:outputText value="#{route.uri}" /></p>
+            <div class="dashboard-server-status">
+              <strong>Server connectivity</strong>
+              <span class="status-pill"><h:outputText value="#{route.serverStatus.status}" /></span>
+              <h:outputText rendered="#{route.serverStatus.latencyMs ne null}" value="#{route.serverStatus.latencyMs} ms" />
+              <span><h:outputText value="#{route.serverStatus.detail}" /></span>
+              <span><h:outputText value="#{dashboardView.formatAuditDate(route.serverStatus.checkedAt)}" /></span>
+            </div>
+            <p:outputPanel rendered="#{not empty route.warning}" styleClass="help-note"><h:outputText value="#{route.warning}" /></p:outputPanel>
+            <p:dataTable value="#{route.rules}" var="rule" styleClass="route-table dashboard-rules" emptyMessage="No rules configured">
+              <p:column headerText="Group"><h:outputText value="#{rule.group}" /></p:column>
+              <p:column headerText="Type"><h:outputText value="#{rule.type}" /></p:column>
+              <p:column headerText="Configuration"><h:outputText value="#{rule.configuration}" styleClass="dashboard-configuration" /></p:column>
+              <p:column headerText="Rule status"><span class="status-pill #{rule.enabled ? 'is-active' : 'is-disabled'}">#{rule.enabled ? 'Enabled' : 'Disabled'}</span></p:column>
+              <p:column headerText="Route effect"><h:outputText value="#{route.enabled and rule.enabled ? 'Enabled on route' : 'Inactive'}" /></p:column>
+            </p:dataTable>
+          </section>
+        </ui:repeat>
+      </main>
+    </h:form>
+    <p:dialog widgetVar="dashboardHelp" header="Dashboard guide" modal="true" responsive="true" width="680" closeOnEscape="true" styleClass="route-dialog">
+      <p class="help-note">Server connectivity is checked using TCP from the gateway on page load and refresh, including disabled routes. REACHABLE means the destination port accepts connections, not that its API is healthy. Connection timeout is 2 seconds, with a 3-second report deadline.</p>
+      <div class="page-help-content"><h2>Read the route configuration report</h2><p>The summary counts all saved routes, enabled routes, filters and policies, and routes without enabled predicates.</p><p>Each card shows a route's destination and priority. Its table includes every saved predicate, BEFORE/AFTER filter, rate limit, retry policy, and circuit breaker, including disabled entries. Configuration displays the saved JSON or policy values.</p><p>A rule is inactive when either it or its route is disabled. An enabled configuration does not confirm that a service is healthy or that a configuration was successfully published on every instance.</p><p>Use Refresh report after editing configuration. Request metrics, upstream health, and live circuit-breaker state are not measured by this report.</p></div>
+    </p:dialog>
+  </ui:define>
+</ui:composition>

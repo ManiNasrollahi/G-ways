@@ -1,0 +1,28 @@
+<!DOCTYPE html []>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html" xmlns:p="primefaces" xmlns:f="jakarta.faces.core" xmlns:ui="jakarta.faces.facelets" lang="en">
+  <h:head>
+    <title>G-WAYS | Control Plane</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <h:outputStylesheet name="/panel/css/layout.css" />
+    <h:outputStylesheet name="/panel/css/routes.css" />
+    <h:outputStylesheet name="/panel/css/retries.css" />
+    <h:outputStylesheet name="/panel/css/circuit-breakers.css" />
+  </h:head>
+  <h:body dir="LTR">
+    <ui:include src="/panel/header.xhtml" />
+    <div class="application-layout">
+      <ui:include src="/panel/menu.xhtml" />
+      <main class="application-content">
+        <ui:insert name="content" />
+      </main>
+    </div>
+    <ui:include src="/panel/footer.xhtml" />
+    <p:ajaxStatus id="requestStatus">
+      <f:facet name="start"><div class="request-loading" role="status" aria-live="polite"><div class="request-loading-card"><h:graphicImage name="/panel/images/loading.gif" width="48" height="48" alt="" /><span>Loading, please wait...</span></div></div></f:facet>
+      <f:facet name="complete"><h:outputText value="" /></f:facet>
+      <f:facet name="error"><h:outputText value="" /></f:facet>
+    </p:ajaxStatus>
+    <h:outputScript name="/panel/js/layout.js" target="body" />
+    <h:outputScript name="/panel/js/retries.js" target="body" />
+  </h:body>
+</html>

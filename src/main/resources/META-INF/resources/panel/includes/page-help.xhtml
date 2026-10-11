@@ -1,0 +1,66 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html" xmlns:p="primefaces" xmlns:ui="jakarta.faces.facelets">
+  <p:dialog widgetVar="pageHelpDialog" header="Page guide" modal="true" responsive="true" width="720" closeOnEscape="true" styleClass="page-help-dialog">
+    <div class="page-help-content">
+      <ui:fragment rendered="#{helpKey eq 'routes'}">
+        <h2>How to manage routes</h2>
+        <p>A route connects an incoming request to an upstream service. The route is evaluated together with its predicates and policies.</p>
+        <h3>Recommended flow</h3>
+        <ol><li>Click <strong>New Route</strong> and enter a technical ID, display name, and destination URI.</li><li>Add one or more predicates to decide when the route matches. For example, use <strong>Path</strong> for <code>/api/**</code> or <strong>Method</strong> for GET and POST.</li><li>Enable the route and click <strong>Save and Publish</strong>.</li></ol>
+        <p class="help-note"><strong>Tip:</strong> Keep the technical ID stable; other policies and filters use the route relationship.</p>
+      </ui:fragment>
+      <ui:fragment rendered="#{helpKey eq 'requests'}">
+        <h2>How to manage request filters</h2>
+        <p>Filters modify a request before it reaches the service or modify the response before it returns to the client.</p>
+        <ol><li>Click <strong>New Filter</strong> and select the target route.</li><li>Select a filter type and complete its name and value. The available fields change based on the selected type.</li><li>Enable the filter and publish it. Filters are applied in the phase shown in the table.</li></ol>
+        <p class="help-note"><strong>Tip:</strong> Use path and header filters for request changes; use response filters for headers returned to the browser.</p>
+      </ui:fragment>
+      <ui:fragment rendered="#{helpKey eq 'trusted-proxies'}">
+        <h2>How to manage trusted proxies</h2>
+        <p>Trusted proxy patterns identify which upstream proxies may provide forwarded client information such as the original IP address.</p>
+        <ol><li>Click <strong>New Trusted Proxy</strong>.</li><li>Enter an IP, CIDR range, or supported proxy pattern.</li><li>Enable the entry and save it. Disable entries temporarily when you need to stop trusting a proxy without deleting it.</li></ol>
+        <p class="help-note"><strong>Security:</strong> Only add networks and proxy addresses that are fully controlled by your infrastructure.</p>
+      </ui:fragment>
+      <ui:fragment rendered="#{helpKey eq 'blacklist'}">
+        <h2>How to manage the gateway blacklist</h2>
+        <p>Blacklist entries block matching client IP addresses before requests reach your routes.</p>
+        <ol><li>Click <strong>New Blacklist Entry</strong>.</li><li>Enter the IP address and an optional reason for the block.</li><li>Enable the entry and save it. Disabled entries remain available for later reuse.</li></ol>
+        <p class="help-note"><strong>Tip:</strong> Use this for emergency blocks and known abusive clients; keep permanent network controls in your infrastructure firewall as well.</p>
+      </ui:fragment>
+      <ui:fragment rendered="#{helpKey eq 'rate-limits'}">
+        <h2>How to configure rate limits</h2>
+        <p>A rate limit protects an upstream route by limiting the number of requests allowed during a period.</p>
+        <ol><li>Select a route.</li><li>Set the period in seconds and the maximum capacity for that period.</li><li>Enable the rule and publish it.</li></ol>
+        <p class="help-note"><strong>Example:</strong> Period <code>60</code> and capacity <code>100</code> allow up to 100 requests per minute according to the gateway's rate-limit strategy.</p>
+      </ui:fragment>
+      <ui:fragment rendered="#{helpKey eq 'retries'}">
+        <h2>How to configure retries</h2>
+        <p>Retry policies repeat failed upstream calls using a controlled backoff. They should be used carefully, especially for non-idempotent operations.</p>
+        <ol><li>Select a route and choose safe HTTP methods.</li><li>Set the retry count and the first and maximum backoff values.</li><li>Choose a backoff multiplier, enable the policy, and publish it.</li></ol>
+        <p class="help-note"><strong>Warning:</strong> Prefer retries for idempotent operations such as GET. Retrying POST or other state-changing calls can create duplicate actions.</p>
+      </ui:fragment>
+      <ui:fragment rendered="#{helpKey eq 'circuit-breakers'}">
+        <h2>How to configure circuit breakers</h2>
+        <p>A circuit breaker stops sending traffic to an unhealthy upstream after its failure rate crosses the configured threshold.</p>
+        <ol><li>Select a route and enable the breaker.</li><li>Configure minimum calls, the sliding window, failure threshold, and open-state wait.</li><li>Define the HTTP statuses that count as failures and provide a fallback URI.</li><li>Publish the policy and monitor the upstream recovery.</li></ol>
+        <p class="help-note"><strong>Tip:</strong> Start with conservative thresholds and tune them using real traffic and upstream latency data.</p>
+      </ui:fragment>
+      <ui:fragment rendered="#{helpKey eq 'cors'}">
+        <h2>How to configure global CORS</h2>
+        <p>This policy applies to browser requests across the gateway. It controls which origins, methods, and headers are accepted.</p>
+        <ol><li>Add each frontend origin to <strong>Allowed origins</strong>.</li><li>List methods and request headers used by the frontend.</li><li>Add response headers to <strong>Exposed headers</strong> only when browser JavaScript must read them.</li><li>Enable credentials only when cookies or authenticated browser credentials are required.</li><li>Set the preflight cache duration and publish the configuration.</li></ol>
+        <p class="help-note"><strong>Important:</strong> Do not use <code>*</code> as the allowed origin when credentials are enabled.</p>
+      </ui:fragment>
+      <ui:fragment rendered="#{helpKey eq 'users'}">
+        <h2>How to manage users</h2>
+        <p>Users authenticate to the control plane and are used by the audit fields on gateway configuration records.</p>
+        <ol><li>Click <strong>New User</strong> and provide a unique username.</li><li>Set a strong password and complete the name fields if needed.</li><li>Keep the user enabled to allow login, then save.</li><li>Disable a user when access should be suspended without removing its history.</li></ol>
+        <p class="help-note"><strong>Security:</strong> Never share administrator credentials. Use a separate account for each operator.</p>
+      </ui:fragment>
+      <ui:fragment rendered="#{helpKey eq 'welcome'}">
+        <h2>Getting started</h2>
+        <p>Use the navigation menu to manage the gateway from the control plane.</p>
+        <ol><li>Create a route and point it to an upstream service.</li><li>Add predicates to control when the route matches.</li><li>Apply filters and resilience policies where needed.</li><li>Configure security controls such as CORS, trusted proxies, and blacklist entries.</li></ol>
+      </ui:fragment>
+    </div>
+  </p:dialog>
+</ui:composition>

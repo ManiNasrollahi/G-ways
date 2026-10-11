@@ -1,0 +1,84 @@
+<ui:composition template="/panel/control-plane.xhtml" xmlns:h="jakarta.faces.html" xmlns:p="primefaces" xmlns:f="jakarta.faces.core" xmlns:ui="jakarta.faces.facelets">
+  <ui:define name="content">
+  <p:growl id="messages" showDetail="true" life="5000" />
+  <h:form id="trustedProxyListForm">
+    <main class="page-shell">
+      <header class="page-header">
+        <div>
+          <span class="eyebrow">CONTROL PLANE</span>
+          <h1>Trusted Proxy Management</h1>
+          <p>Manage proxy patterns allowed to provide forwarded request headers</p>
+        </div>
+        <div class="page-header-actions"><p:commandButton value="How to use" icon="pi pi-question-circle" type="button" styleClass="help-button" onclick="PF('pageHelpDialog').show()" /><p:commandButton value="New Trusted Proxy" icon="pi pi-plus" process="@this" actionListener="#{trustedProxiesView.openNew}" update=":trustedProxyDialogForm" oncomplete="PF('trustedProxyDialog').show()" /></div>
+      </header>
+      <section class="stat-grid">
+        <article class="stat-card">
+          <strong>#{trustedProxiesView.gatewayTrustedProxies.size()}</strong>
+          <span>Total Proxies</span>
+        </article>
+        <article class="stat-card">
+          <strong>#{trustedProxiesView.enabledCount}</strong>
+          <span>Active Proxies</span>
+        </article>
+      </section>
+      <section class="content-card">
+        <p:dataTable id="trustedProxiesTable" value="#{trustedProxiesView.gatewayTrustedProxies}"
+                     var="proxy" paginator="true" rows="10" paginatorPosition="bottom" emptyMessage="No trusted proxies have been registered" styleClass="route-table">
+
+          <p:column headerText="Pattern">
+            <span class="destination">
+              <h:outputText value="#{proxy.pattern}" />
+            </span>
+          </p:column>
+          <p:column headerText="Status">
+            <span class="status-pill #{proxy.enabled ? 'is-active' : 'is-disabled'}">
+              <i class="pi #{proxy.enabled ? 'pi-check-circle' : 'pi-pause-circle'}" />
+              <h:outputText value="#{proxy.enabled ? 'Active' : 'Disabled'}" />
+            </span>
+          </p:column>
+          <p:column headerText="Registered By" styleClass="audit-user-column">
+            <h:outputText value="#{proxy.registerUser}" />
+          </p:column>
+          <p:column headerText="Created At" styleClass="audit-date-column">
+            <h:outputText value="#{trustedProxiesView.formatAuditDate(proxy.createdAt)}" />
+          </p:column>
+          <p:column headerText="Updated At" styleClass="audit-date-column">
+            <h:outputText value="#{trustedProxiesView.formatAuditDate(proxy.updatedAt)}" />
+          </p:column>
+          <p:column headerText="Actions" styleClass="actions-column">
+            <p:commandButton icon="pi pi-pencil" title="Edit" styleClass="ui-button-flat ui-button-secondary" process="@this" actionListener="#{trustedProxiesView.openEdit(proxy.id)}" update=":trustedProxyDialogForm" oncomplete="PF('trustedProxyDialog').show()" />
+            <p:commandButton icon="pi pi-trash" title="Delete" styleClass="ui-button-flat ui-button-danger" actionListener="#{trustedProxiesView.delete(proxy)}" update="trustedProxyListForm messages">
+              <p:confirm header="Delete Trusted Proxy" message="Are you sure you want to delete this trusted proxy?" icon="pi pi-exclamation-triangle" />
+            </p:commandButton>
+          </p:column>
+        </p:dataTable>
+      </section>
+      <p:confirmDialog global="true" responsive="true">
+        <p:commandButton value="Delete" type="button" styleClass="ui-confirmdialog-yes ui-button-danger" />
+        <p:commandButton value="Cancel" type="button" styleClass="ui-confirmdialog-no ui-button-secondary" />
+      </p:confirmDialog>
+    </main>
+  </h:form>
+  <p:dialog widgetVar="trustedProxyDialog" header="Trusted Proxy Configuration" modal="true" responsive="true" width="620" closeOnEscape="true" styleClass="route-dialog">
+    <h:form id="trustedProxyDialogForm">
+      <p:messages id="dialogMessages" showDetail="true" closable="true" />
+      <div class="form-grid">
+        <div class="field field-wide">
+          <p:outputLabel for="pattern" value="Proxy Pattern" />
+          <p:inputText id="pattern" value="#{trustedProxiesView.trustedProxy.pattern}" required="true" requiredMessage="Proxy pattern is required" placeholder="10.0.0.0/8 or a regular expression" />
+        </div>
+        <div class="field toggle-field">
+          <p:outputLabel for="enabled" value="Proxy Status" />
+          <p:toggleSwitch id="enabled" value="#{trustedProxiesView.trustedProxy.enabled}" />
+          <span>Enable proxy</span>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <p:commandButton value="Cancel" type="button" styleClass="ui-button-secondary ui-button-outlined" onclick="PF('trustedProxyDialog').hide()" />
+        <p:commandButton value="Save" icon="pi pi-check" actionListener="#{trustedProxiesView.save}" oncomplete="if (!args.validationFailed) PF('trustedProxyDialog').hide()" process="@form" update="@form :trustedProxyListForm" />
+      </div>
+    </h:form>
+  </p:dialog>
+    <ui:include src="/panel/includes/page-help.xhtml"><ui:param name="helpKey" value="trusted-proxies" /></ui:include>
+  </ui:define>
+</ui:composition>

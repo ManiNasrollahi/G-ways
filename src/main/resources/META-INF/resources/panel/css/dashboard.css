@@ -1,0 +1,10 @@
+.dashboard-route { margin-top: 20px; min-width: 0; }
+.dashboard-route-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.dashboard-route-heading h2 { margin: 0 0 6px; color: #183b2b; font-size: 1.15rem; overflow-wrap: anywhere; }
+.dashboard-route-heading p, .dashboard-caption { color: #708078; font-size: .82rem; line-height: 1.7; }
+.dashboard-route-heading p { margin: 0; }
+.dashboard-destination { color: #51685b; font-size: .87rem; overflow-wrap: anywhere; margin: 20px 0; }
+.dashboard-destination strong { margin-right: 8px; }
+.dashboard-configuration { font-family: Consolas, monospace; font-size: .82rem; }
+.dashboard-rules { max-width: 100%; min-width: 0; }
+.dashboard-server-status { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 20px; color: #51685b; font-size: .82rem; }

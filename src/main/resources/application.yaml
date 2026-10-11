@@ -1,0 +1,41 @@
+server:
+  port: ${SERVER_PORT:8080}
+spring:
+  application:
+    name: gateway
+  datasource:
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    url: ${DB_URL}
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/migration/V1__create_gateway_schema.sql
+      separator: $$
+  jpa:
+    hibernate:
+      naming:
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        transaction:
+          jta:
+            platform: org.hibernate.service.jta.platform.internal.SunOneJtaPlatform
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          use-framework-retry-filter: true
+          form-filter:
+            enabled: false
+joinfaces:
+  faces:
+    project-stage: production
+  primefaces:
+    theme: saga
+
+
+

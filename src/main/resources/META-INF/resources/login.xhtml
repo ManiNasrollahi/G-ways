@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html" xmlns:ui="jakarta.faces.facelets" lang="en">
+<h:head>
+  <title>G-WAYS | Sign in</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <h:outputStylesheet name="css/login.css" />
+</h:head>
+<h:body>
+  <main class="login-page">
+    <section class="login-card">
+      <div class="login-mark"><h:graphicImage name="/panel/images/g-ways-symbol.png" alt="G-WAYS" /></div>
+      <span class="eyebrow">G-WAYS / CONTROL PLANE</span>
+      <h1>Sign in</h1>
+      <p>Sign in to manage gateway configuration.</p>
+      <h:panelGroup layout="block" styleClass="login-error" rendered="#{param.error != null}">Invalid username or password.</h:panelGroup>
+      <h:panelGroup layout="block" styleClass="login-success" rendered="#{param.logout != null}">You have been logged out.</h:panelGroup>
+      <form action="#{request.contextPath}/login" method="POST" class="login-form">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" autocomplete="username" required="required" autofocus="autofocus" />
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required="required" />
+        <button type="submit">Sign in</button>
+      </form>
+    </section>
+  </main>
+</h:body>
+</html>

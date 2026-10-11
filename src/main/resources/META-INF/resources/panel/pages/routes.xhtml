@@ -1,0 +1,156 @@
+<ui:composition template="/panel/control-plane.xhtml" xmlns:h="jakarta.faces.html" xmlns:p="primefaces" xmlns:f="jakarta.faces.core" xmlns:ui="jakarta.faces.facelets">
+  <ui:define name="content">
+  <p:growl id="messages" showDetail="true" life="5000" />
+  <h:form id="routeListForm">
+    <main class="page-shell">
+      <header class="page-header">
+        <div>
+          <span class="eyebrow">CONTROL PLANE</span>
+          <h1>Gateway Route Management</h1>
+          <p>Define, validate, and publish configurations without restarting the service</p>
+        </div>
+        <div class="page-header-actions"><p:commandButton value="How to use" icon="pi pi-question-circle" type="button" styleClass="help-button" onclick="PF('pageHelpDialog').show()" /><p:commandButton value="New Route" icon="pi pi-plus" process="@this" actionListener="#{defineRouteView.openNew}" update=":routeDialogForm" oncomplete="PF('routeDialog').show()" /></div>
+      </header>
+      <section class="stat-grid">
+        <article class="stat-card">
+          <strong>#{defineRouteView.routes.size()}</strong>
+          <span>Total Routes</span>
+        </article>
+        <article class="stat-card">
+          <strong>#{defineRouteView.enabledCount}</strong>
+          <span>Active Routes</span>
+        </article>
+      </section>
+      <section class="content-card">
+        <p:dataTable id="routesTable" value="#{defineRouteView.routes}" var="route" paginator="true" rows="10" paginatorPosition="bottom" emptyMessage="No routes have been registered" styleClass="route-table">
+          <p:column headerText="Route Name" filterBy="#{route.routeName}" filterMatchMode="contains" sortBy="#{route.routeName}">
+            <h:outputText value="#{route.routeName}" />
+          </p:column>
+          <p:column headerText="Route ID" >
+            <h:outputText value="#{route.routeId}" />
+          </p:column>
+          <p:column headerText="Destination">
+            <span class="destination">
+              <h:outputText value="#{route.uri}" />
+            </span>
+          </p:column>
+          <p:column headerText="Priority">
+            <h:outputText value="#{route.routeOrder}" />
+          </p:column>
+          <p:column headerText="Status" styleClass="status-column">
+            <span class="status-pill #{route.enabled ? 'is-active' : 'is-disabled'}">
+              <i class="pi #{route.enabled ? 'pi-check-circle' : 'pi-pause-circle'}" />
+              <h:outputText value="#{route.enabled ? 'Active' : 'Disabled'}" />
+            </span>
+          </p:column>
+          <p:column headerText="Registered By" styleClass="audit-user-column">
+            <h:outputText value="#{route.registerUser}" />
+          </p:column>
+          <p:column headerText="Created At" styleClass="audit-date-column">
+            <h:outputText value="#{defineRouteView.formatAuditDate(route.createdAt)}" />
+          </p:column>
+          <p:column headerText="Updated At" styleClass="audit-date-column">
+            <h:outputText value="#{defineRouteView.formatAuditDate(route.updatedAt)}" />
+          </p:column>
+          <p:column headerText="Actions" exportable="false" styleClass="actions-column">
+            <p:commandButton icon="pi pi-pencil" title="Edit" styleClass="ui-button-flat ui-button-secondary" process="@this" actionListener="#{defineRouteView.openEdit(route.id)}" update=":routeDialogForm" oncomplete="PF('routeDialog').show()" />
+            <p:commandButton icon="pi pi-trash" title="Delete" styleClass="ui-button-flat ui-button-danger" process="@this" actionListener="#{defineRouteView.delete(route)}" update="routeListForm messages">
+              <p:confirm header="Delete Route" message="Are you sure you want to delete route #{route.routeName}?" icon="pi pi-exclamation-triangle" />
+            </p:commandButton>
+          </p:column>
+        </p:dataTable>
+        <h:panelGroup id="emptyState" />
+      </section>
+    </main>
+    <p:confirmDialog global="true" responsive="true">
+      <p:commandButton value="Delete" type="button" styleClass="ui-confirmdialog-yes ui-button-danger" />
+      <p:commandButton value="Cancel" type="button" styleClass="ui-confirmdialog-no ui-button-secondary" />
+    </p:confirmDialog>
+  </h:form>
+  <p:dialog id="routeDialog" widgetVar="routeDialog" header="Route Configuration" modal="true" responsive="true" width="850" closeOnEscape="true" styleClass="route-dialog">
+    <h:form id="routeDialogForm">
+      <p:messages id="dialogMessages" showDetail="true" closable="true" />
+      <div class="form-grid">
+        <div class="field">
+          <p:outputLabel for="routeId" value="Technical ID" />
+          <p:inputText id="routeId" value="#{defineRouteView.route.routeId}" required="true" requiredMessage="Technical ID is required" />
+        </div>
+        <div class="field">
+          <p:outputLabel for="routeName" value="Display Name" />
+          <p:inputText id="routeName" value="#{defineRouteView.route.routeName}" required="true" requiredMessage="Display name is required" />
+        </div>
+        <div class="field field-wide">
+          <p:outputLabel for="uri" value="Destination URI" />
+          <p:inputText id="uri" value="#{defineRouteView.route.uri}" required="true" requiredMessage="Destination URI is required" placeholder="https://service.internal" />
+        </div>
+        <div class="field">
+          <p:outputLabel for="routeOrder" value="Priority" />
+          <p:inputNumber id="routeOrder" value="#{defineRouteView.route.routeOrder}" decimalPlaces="0" />
+        </div>
+        <div class="field toggle-field">
+          <p:outputLabel for="enabled"/>
+          <p:toggleSwitch id="enabled" value="#{defineRouteView.route.enabled}" />
+          <span>Enable Route</span>
+        </div>
+      </div>
+      <div class="predicate-title">
+        <p:commandButton value="Add Predicate" icon="pi pi-plus" styleClass="ui-button-outlined" actionListener="#{defineRouteView.addPredicate}" process="@this" update="routeDialogForm:predicates" />
+      </div>
+      <p:dataTable id="predicates" value="#{defineRouteView.route.predicates}" var="predicate" rowIndexVar="index" styleClass="predicate-table" lazy="false" emptyMessage="Add at least one predicate">
+        <p:column headerText="#" styleClass="index-column">
+          #{index + 1}
+        </p:column>
+        <p:column headerText="Type" styleClass="type-column">
+          <p:selectOneMenu value="#{predicate.predicateType}">
+            <f:selectItem itemLabel="select" itemValue="null" />
+            <f:selectItems value="#{defineRouteView.predicateTypes}" />
+            <p:ajax process="@this" update="routeDialogForm:predicates" partialSubmit="true" />
+          </p:selectOneMenu>
+        </p:column>
+        <p:column headerText="Configuration">
+          <p:outputPanel rendered="#{predicate.predicateType eq 'PATH'                          or predicate.predicateType eq 'METHOD'                          or predicate.predicateType eq 'HOST'}">
+            <p:chips value="#{predicate.patterns}" placeholder="Enter a value and press Enter" />
+          </p:outputPanel>
+          <p:outputPanel rendered="#{predicate.predicateType eq 'HEADER'                          or predicate.predicateType eq 'QUERY'                          or predicate.predicateType eq 'COOKIE'}">
+            <div class="predicate-fields">
+              <div>
+                <p:inputText value="#{predicate.name}" placeholder="Name" />
+              </div>
+              <div>
+                <p:inputText value="#{predicate.value}" placeholder="Value" />
+              </div>
+            </div>
+          </p:outputPanel>
+          <p:outputPanel rendered="#{predicate.predicateType eq 'BEFORE'                          or predicate.predicateType eq 'AFTER'}">
+            <p:outputLabel value="Date and Time" />
+            <p:datePicker value="#{predicate.dateTime}" showTime="true" pattern="yyyy-MM-dd HH:mm:ss" showIcon="true" />
+          </p:outputPanel>
+          <p:outputPanel rendered="#{predicate.predicateType eq 'BETWEEN'}">
+            <div class="predicate-fields">
+              <div>
+                <p:outputLabel for="dateFrom" value="From" />
+                <p:datePicker id="dateFrom" value="#{predicate.dateTime1}" showTime="true" pattern="yyyy-MM-dd HH:mm:ss" showIcon="true" />
+              </div>
+              <div>
+                <p:outputLabel for="dateAfter" value="To" />
+                <p:datePicker id="dateAfter" value="#{predicate.dateTime2}" showTime="true" pattern="yyyy-MM-dd HH:mm:ss" showIcon="true" />
+              </div>
+            </div>
+          </p:outputPanel>
+        </p:column>
+        <p:column headerText="Enabled" styleClass="enabled-column">
+          <p:toggleSwitch value="#{predicate.enabled}" />
+        </p:column>
+        <p:column styleClass="remove-column">
+          <p:commandButton icon="pi pi-times" title="Remove Predicate" styleClass="ui-button-flat ui-button-danger" process="@this" actionListener="#{defineRouteView.removePredicate(predicate)}" update="routeDialogForm:predicates" />
+        </p:column>
+      </p:dataTable>
+      <div class="dialog-actions">
+        <p:commandButton value="Cancel" type="button" styleClass="ui-button-secondary ui-button-outlined" onclick="PF('routeDialog').hide()" />
+        <p:commandButton value="Save and Publish" icon="pi pi-check" actionListener="#{defineRouteView.save}" oncomplete="if (!args.validationFailed) PF('routeDialog').hide()" process="@form" update="@form :routeListForm" />
+      </div>
+    </h:form>
+  </p:dialog>
+    <ui:include src="/panel/includes/page-help.xhtml"><ui:param name="helpKey" value="routes" /></ui:include>
+  </ui:define>
+</ui:composition>

@@ -1,0 +1,41 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html" xmlns:ui="jakarta.faces.facelets">
+  <div id="pageMenu">
+    <aside id="application-sidebar" class="application-sidebar" aria-hidden="false">
+      <nav aria-label="Main navigation">
+        <h2>Menu</h2>
+        <ul class="application-menu">
+            <li>
+              <h:link outcome="/panel/pages/routes" value="Routes" />
+            </li>
+            <li>
+              <h:link outcome="/panel/pages/requests" value="Request Management" />
+            </li>
+            <li>
+              <h:link outcome="/panel/pages/trusted-proxies" value="Trusted Proxies" />
+            </li>
+            <li>
+              <h:link outcome="/panel/pages/gateway-blacklist" value="Gateway Blacklist" />
+            </li>
+            <li>
+              <h:link outcome="/panel/pages/rate-limits" value="Rate Limits" />
+            </li>
+            <li>
+              <h:link outcome="/panel/pages/retries" value="Retries" />
+            </li>
+            <li>
+              <h:link outcome="/panel/pages/circuit-breakers" value="Circuit Breakers" />
+            </li>
+            <li>
+              <h:link outcome="/panel/pages/cors" value="CORS" />
+            </li>
+            <li>
+              <h:link outcome="/panel/pages/users" value="Users" />
+            </li>
+            <li>
+              <h:link outcome="/panel/pages/dashboard" value="Dashboard / Route reports" />
+            </li>
+        </ul>
+      </nav>
+    </aside>
+  </div>
+</ui:composition>

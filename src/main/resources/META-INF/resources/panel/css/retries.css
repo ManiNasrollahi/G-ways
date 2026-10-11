@@ -1,0 +1,19 @@
+.retry-page .page-header h1 { letter-spacing: -0.045em; }
+.retry-stat-card { position: relative; overflow: hidden; text-align: left; }
+.retry-stat-card .stat-icon { float: right; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: var(--primary-color); background: var(--primary-soft-color); }
+.retry-stat-card strong { clear: both; padding-top: 12px; }
+.retry-table .metric-value { color: var(--primary-color); font-weight: 800; }
+.retry-table small { color: var(--muted-text-color); }
+.method-list { display: flex; flex-wrap: nowrap; justify-content: center; gap: 5px; max-width: none; margin: auto; white-space: nowrap; }
+.method-chip { padding: 4px 7px; border: 1px solid #d5e9dc; border-radius: 7px; color: #276148; background: #f0f8f3; font: 700 .7rem/1 Tahoma, sans-serif; }
+.method-field { padding: 14px 16px; border: 1px solid #e0ebe3; border-radius: 12px; background: #f9fcfa; }
+.method-field .ui-selectmanycheckbox { display: block; width: 100%; max-width: 100%; max-height: 230px; overflow-y: auto; padding: 4px 8px 4px 4px; margin-top: 2px; }
+.method-field .ui-selectmanycheckbox table { width: 100%; table-layout: fixed; }
+.method-field .ui-selectmanycheckbox td { width: 25%; padding: 6px 4px; white-space: nowrap; }
+.method-field .ui-chkbox { margin-right: 5px; }
+.method-field label { margin-right: 10px; color: #315c46; font-weight: 700; }
+.field-hint { color: var(--muted-text-color); font-size: .72rem; line-height: 1.5; }
+.field-hint.is-warning { color: #b45309; font-weight: 700; }
+.retry-toggle { align-content: flex-start; }
+.retry-toggle label { margin-bottom: 2px; }
+@media (max-width: 760px) { .method-field .ui-selectmanycheckbox td { width: 50%; } .retry-table .method-list { justify-content: flex-start; } }

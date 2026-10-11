@@ -1,0 +1,146 @@
+<ui:composition template="/panel/control-plane.xhtml" xmlns:h="jakarta.faces.html" xmlns:p="primefaces" xmlns:f="jakarta.faces.core" xmlns:ui="jakarta.faces.facelets">
+  <ui:define name="content">
+  <p:growl id="circuitBreakerMessages" showDetail="true" life="5000" />
+  <h:form id="circuitBreakerListForm">
+    <main class="page-shell">
+      <header class="page-header">
+        <div>
+          <span class="eyebrow">CONTROL PLANE / RESILIENCE</span>
+          <h1>Circuit Breaker Management</h1>
+          <p>Stop repeated upstream failures from cascading through the gateway.</p>
+        </div>
+        <div class="page-header-actions"><p:commandButton value="How to use" icon="pi pi-question-circle" type="button" styleClass="help-button" onclick="PF('pageHelpDialog').show()" /><p:commandButton value="New Circuit Breaker" icon="pi pi-plus" process="@this"
+                         actionListener="#{circuitBreakerView.openNew}"
+                         update=":circuitBreakerDialogForm"
+                         oncomplete="PF('circuitBreakerDialog').show()" />
+        </div>
+      </header>
+
+      <section class="stat-grid">
+        <article class="stat-card">
+          <strong>#{circuitBreakerView.circuitBreakers.size()}</strong>
+          <span>Configured Breakers</span>
+        </article>
+        <article class="stat-card">
+          <strong>#{circuitBreakerView.enabledCount}</strong>
+          <span>Active Breakers</span>
+        </article>
+      </section>
+
+      <section class="content-card">
+        <p:dataTable id="circuitBreakersTable" value="#{circuitBreakerView.circuitBreakers}" var="item"
+                     paginator="true" rows="10" paginatorPosition="bottom" styleClass="route-table"
+                     emptyMessage="No circuit breakers registered. Create a route, then add its circuit breaker.">
+          <p:column headerText="Route Name" filterBy="#{item.route.routeName}" filterMatchMode="contains" sortBy="#{item.route.routeName}">
+            <h:outputText value="#{item.route.routeName}" />
+          </p:column>
+          <p:column headerText="Failure Threshold">
+            <h:outputText value="#{item.failureRateThreshold}" />%
+          </p:column>
+          <p:column headerText="Window">
+            <h:outputText value="#{item.slidingWindowSize}" /> calls
+          </p:column>
+          <p:column headerText="Open Wait">
+            <h:outputText value="#{item.waitDurationInOpenStateSeconds}" /> sec
+          </p:column>
+          <p:column headerText="Timeout">
+            <h:outputText value="#{item.timeOutInSeconds}" /> sec
+          </p:column>
+          <p:column headerText="Status">
+            <span class="status-pill #{item.enabled ? 'is-active' : 'is-disabled'}">
+              <i class="pi #{item.enabled ? 'pi-check-circle' : 'pi-pause-circle'}" />
+              <h:outputText value="#{item.enabled ? 'Active' : 'Disabled'}" />
+            </span>
+          </p:column>
+          <p:column headerText="Registered By" styleClass="audit-user-column">
+            <h:outputText value="#{item.registerUser}" />
+          </p:column>
+          <p:column headerText="Created At" styleClass="audit-date-column">
+            <h:outputText value="#{circuitBreakerView.formatAuditDate(item.createdAt)}" />
+          </p:column>
+          <p:column headerText="Updated At" styleClass="audit-date-column">
+            <h:outputText value="#{circuitBreakerView.formatAuditDate(item.updatedAt)}" />
+          </p:column>
+          <p:column headerText="Actions" styleClass="actions-column">
+            <p:commandButton icon="pi pi-pencil" title="Edit circuit breaker"
+                             styleClass="ui-button-flat ui-button-secondary" process="@this"
+                             actionListener="#{circuitBreakerView.openEdit(item.id)}"
+                             update=":circuitBreakerDialogForm :circuitBreakerMessages"
+                             oncomplete="if (!args.validationFailed) PF('circuitBreakerDialog').show()" />
+            <p:commandButton icon="pi pi-trash" title="Delete circuit breaker"
+                             styleClass="ui-button-flat ui-button-danger" process="@this"
+                             actionListener="#{circuitBreakerView.delete(item)}"
+                             update="@form :circuitBreakerMessages">
+              <p:confirm header="Delete Circuit Breaker" message="Delete this circuit breaker and publish the change?" icon="pi pi-exclamation-triangle" />
+            </p:commandButton>
+          </p:column>
+        </p:dataTable>
+      </section>
+    </main>
+
+    <p:confirmDialog global="true" responsive="true">
+      <p:commandButton value="Delete" type="button" styleClass="ui-confirmdialog-yes ui-button-danger" />
+      <p:commandButton value="Cancel" type="button" styleClass="ui-confirmdialog-no ui-button-secondary" />
+    </p:confirmDialog>
+  </h:form>
+
+  <p:dialog widgetVar="circuitBreakerDialog" header="Circuit Breaker Configuration"
+            modal="true" responsive="true" width="780" closeOnEscape="true" styleClass="route-dialog">
+    <h:form id="circuitBreakerDialogForm">
+      <p:messages id="circuitBreakerDialogMessages" showDetail="true" closable="true" />
+      <div class="form-grid">
+        <div class="field field-wide">
+          <p:outputLabel for="route" value="Route" />
+          <p:selectOneMenu id="route" value="#{circuitBreakerView.circuitBreaker.route.id}" required="true" requiredMessage="Route is required">
+            <f:selectItem itemLabel="Select a route" itemValue="#{null}" noSelectionOption="true" />
+            <f:selectItems value="#{circuitBreakerView.routes}" var="route" itemLabel="#{route.routeName} (#{route.routeId})" itemValue="#{route.id}" />
+          </p:selectOneMenu>
+        </div>
+        <div class="field toggle-field">
+          <p:outputLabel for="enabled" value="Breaker Status" />
+          <p:toggleSwitch id="enabled" value="#{circuitBreakerView.circuitBreaker.enabled}" />
+          <span>Enable breaker</span>
+        </div>
+        <div class="field">
+          <p:outputLabel for="minimumCalls" value="Minimum number of calls" />
+          <p:inputNumber id="minimumCalls" value="#{circuitBreakerView.circuitBreaker.minimumNumberOfCalls}" minValue="1" decimalPlaces="0" required="true" />
+        </div>
+        <div class="field">
+          <p:outputLabel for="windowSize" value="Sliding window size" />
+          <p:inputNumber id="windowSize" value="#{circuitBreakerView.circuitBreaker.slidingWindowSize}" minValue="1" decimalPlaces="0" required="true" />
+        </div>
+        <div class="field">
+          <p:outputLabel for="failureThreshold" value="Failure rate threshold (%)" />
+          <p:inputNumber id="failureThreshold" value="#{circuitBreakerView.circuitBreaker.failureRateThreshold}" minValue="1" maxValue="100" decimalPlaces="2" required="true" />
+        </div>
+        <div class="field">
+          <p:outputLabel for="openWait" value="Open-state wait (seconds)" />
+          <p:inputNumber id="openWait" value="#{circuitBreakerView.circuitBreaker.waitDurationInOpenStateSeconds}" minValue="1" decimalPlaces="0" required="true" />
+        </div>
+        <div class="field">
+          <p:outputLabel for="halfOpenCalls" value="Half-open permitted calls" />
+          <p:inputNumber id="halfOpenCalls" value="#{circuitBreakerView.circuitBreaker.permittedNumberOfCallsInHalfOpenState}" minValue="1" decimalPlaces="0" required="true" />
+        </div>
+        <div class="field">
+          <p:outputLabel for="timeout" value="Timeout (seconds)" />
+          <p:inputNumber id="timeout" value="#{circuitBreakerView.circuitBreaker.timeOutInSeconds}" minValue="1" decimalPlaces="0" required="true" />
+        </div>
+        <div class="field field-wide status-field">
+          <p:outputLabel for="httpStatuses" value="Failure HTTP status codes" />
+          <p:selectManyCheckbox id="httpStatuses" value="#{circuitBreakerView.circuitBreaker.httpStatusList}" layout="pageDirection" columns="4" required="true" requiredMessage="Select at least one HTTP status code">
+            <f:selectItems value="#{circuitBreakerView.httpStatuses}" var="status" itemLabel="#{status}" itemValue="#{status.value()}" />
+          </p:selectManyCheckbox>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <p:commandButton value="Cancel" type="button" styleClass="ui-button-secondary ui-button-outlined" onclick="PF('circuitBreakerDialog').hide()" />
+        <p:commandButton value="Save and Publish" icon="pi pi-check" process="@form"
+                         actionListener="#{circuitBreakerView.save}"
+                         update="@form :circuitBreakerListForm :circuitBreakerMessages"
+                         oncomplete="if (!args.validationFailed) PF('circuitBreakerDialog').hide()" />
+      </div>
+    </h:form>
+  </p:dialog>
+    <ui:include src="/panel/includes/page-help.xhtml"><ui:param name="helpKey" value="circuit-breakers" /></ui:include>
+  </ui:define>
+</ui:composition>

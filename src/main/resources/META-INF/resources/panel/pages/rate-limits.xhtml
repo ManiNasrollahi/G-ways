@@ -1,0 +1,100 @@
+<ui:composition template="/panel/control-plane.xhtml" xmlns:h="jakarta.faces.html" xmlns:p="primefaces" xmlns:f="jakarta.faces.core" xmlns:ui="jakarta.faces.facelets">
+  <ui:define name="content">
+  <p:growl id="rateLimitMessages" showDetail="true" life="5000" />
+  <h:form id="rateLimitListForm">
+    <main class="page-shell">
+      <header class="page-header">
+        <div>
+          <span class="eyebrow">CONTROL PLANE</span>
+          <h1>Rate Limit Management</h1>
+          <p>Protect routes by limiting requests via IP over a configured time window</p>
+        </div>
+        <div class="page-header-actions"><p:commandButton value="How to use" icon="pi pi-question-circle" type="button" styleClass="help-button" onclick="PF('pageHelpDialog').show()" /><p:commandButton value="New Rate Limit" icon="pi pi-plus" process="@this" actionListener="#{rateLimitView.openNew}" update=":rateLimitDialogForm" oncomplete="PF('rateLimitDialog').show()" /></div>
+      </header>
+      <section class="stat-grid">
+        <article class="stat-card">
+          <strong>#{rateLimitView.rateLimits.size()}</strong>
+          <span>Total Rules</span>
+        </article>
+        <article class="stat-card">
+          <strong>#{rateLimitView.enabledCount}</strong>
+          <span>Active Rules</span>
+        </article>
+      </section>
+      <section class="content-card">
+        <p:dataTable id="rateLimitsTable" value="#{rateLimitView.rateLimits}" var="item"
+                     paginator="true" rows="10" paginatorPosition="bottom" styleClass="route-table"
+                     emptyMessage="No rate limit rules registered. Create a route, then add its rate limit.">
+
+          <p:column headerText="Route Name" filterBy="#{item.route.routeName}" filterMatchMode="contains" sortBy="#{item.route.routeName}">
+            <h:outputText value="#{item.route.routeName}" />
+          </p:column>
+          <p:column headerText="Period">
+            <h:outputText value="#{item.period}" /> seconds
+          </p:column>
+          <p:column headerText="Capacity">
+            <h:outputText value="#{item.capacity}" /> requests
+          </p:column>
+          <p:column headerText="Status">
+            <span class="status-pill #{item.enabled ? 'is-active' : 'is-disabled'}">
+              <i class="pi #{item.enabled ? 'pi-check-circle' : 'pi-pause-circle'}" />
+              <h:outputText value="#{item.enabled ? 'Active' : 'Disabled'}" />
+            </span>
+          </p:column>
+          <p:column headerText="Registered By" styleClass="audit-user-column">
+            <h:outputText value="#{item.registerUser}" />
+          </p:column>
+          <p:column headerText="Created At" styleClass="audit-date-column">
+            <h:outputText value="#{rateLimitView.formatAuditDate(item.createdAt)}" />
+          </p:column>
+          <p:column headerText="Updated At" styleClass="audit-date-column">
+            <h:outputText value="#{rateLimitView.formatAuditDate(item.updatedAt)}" />
+          </p:column>
+          <p:column headerText="Actions" styleClass="actions-column">
+            <p:commandButton icon="pi pi-pencil" title="Edit rate limit" styleClass="ui-button-flat ui-button-secondary" process="@this" actionListener="#{rateLimitView.openEdit(item.id)}" update=":rateLimitDialogForm :rateLimitMessages" oncomplete="if (!args.validationFailed) PF('rateLimitDialog').show()" />
+            <p:commandButton icon="pi pi-trash" title="Delete rate limit" styleClass="ui-button-flat ui-button-danger" process="@this" actionListener="#{rateLimitView.delete(item)}" update="@form :rateLimitMessages">
+              <p:confirm header="Delete Rate Limit" message="Delete this rate limit and publish the change?" icon="pi pi-exclamation-triangle" />
+            </p:commandButton>
+          </p:column>
+        </p:dataTable>
+      </section>
+    </main>
+    <p:confirmDialog global="true" responsive="true">
+      <p:commandButton value="Delete" type="button" styleClass="ui-confirmdialog-yes ui-button-danger" />
+      <p:commandButton value="Cancel" type="button" styleClass="ui-confirmdialog-no ui-button-secondary" />
+    </p:confirmDialog>
+  </h:form>
+  <p:dialog widgetVar="rateLimitDialog" header="Rate Limit Configuration" modal="true" responsive="true" width="620" closeOnEscape="true" styleClass="route-dialog">
+    <h:form id="rateLimitDialogForm">
+      <p:messages showDetail="true" />
+      <div class="form-grid">
+        <div class="field field-wide">
+          <p:outputLabel for="route" value="Route" />
+          <p:selectOneMenu id="route" value="#{rateLimitView.rateLimit.route.id}" required="true" requiredMessage="Route is required">
+            <f:selectItem itemLabel="Select a route" itemValue="#{null}" noSelectionOption="true" />
+            <f:selectItems value="#{rateLimitView.routes}" var="route" itemLabel="#{route.routeName} (#{route.routeId})" itemValue="#{route.id}" />
+          </p:selectOneMenu>
+        </div>
+        <div class="field">
+          <p:outputLabel for="period" value="Period (seconds)" />
+          <p:inputNumber id="period" value="#{rateLimitView.rateLimit.period}" minValue="1" decimalPlaces="0" required="true" />
+        </div>
+        <div class="field">
+          <p:outputLabel for="capacity" value="Capacity" />
+          <p:inputNumber id="capacity" value="#{rateLimitView.rateLimit.capacity}" minValue="1" decimalPlaces="0" required="true" />
+        </div>
+        <div class="field toggle-field">
+          <p:outputLabel for="enabled" value="Rule Status" />
+          <p:toggleSwitch id="enabled" value="#{rateLimitView.rateLimit.enabled}" />
+          <span>Enable rule</span>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <p:commandButton value="Cancel" type="button" styleClass="ui-button-secondary ui-button-outlined" onclick="PF('rateLimitDialog').hide()" />
+        <p:commandButton value="Save and Publish" icon="pi pi-check" process="@form" actionListener="#{rateLimitView.save}" update="@form :rateLimitListForm :rateLimitMessages" oncomplete="if (!args.validationFailed) PF('rateLimitDialog').hide()" />
+      </div>
+    </h:form>
+  </p:dialog>
+    <ui:include src="/panel/includes/page-help.xhtml"><ui:param name="helpKey" value="rate-limits" /></ui:include>
+  </ui:define>
+</ui:composition>

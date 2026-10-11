@@ -1,0 +1,138 @@
+<ui:composition template="/panel/control-plane.xhtml" xmlns:h="jakarta.faces.html" xmlns:p="primefaces" xmlns:f="jakarta.faces.core" xmlns:ui="jakarta.faces.facelets">
+  <ui:define name="content">
+  <p:growl id="retryMessages" showDetail="true" life="5000" />
+  <h:form id="retryListForm">
+    <main class="page-shell retry-page">
+      <header class="page-header">
+        <div>
+          <span class="eyebrow">CONTROL PLANE / RESILIENCE</span>
+          <h1>Retry Policy Management</h1>
+          <p>Give transient failures a controlled second chance before returning an error to the client.</p>
+        </div>
+        <div class="page-header-actions"><p:commandButton value="How to use" icon="pi pi-question-circle" type="button" styleClass="help-button" onclick="PF('pageHelpDialog').show()" /><p:commandButton value="New Retry Policy" icon="pi pi-plus" process="@this" actionListener="#{retryView.openNew}"
+                         update=":retryDialogForm" oncomplete="PF('retryDialog').show(); RetryPage.refresh()" />
+        </div>
+      </header>
+      <section class="stat-grid">
+        <article class="stat-card retry-stat-card">
+          <strong>#{retryView.retries.size()}</strong>
+          <span>Configured Policies</span>
+        </article>
+        <article class="stat-card retry-stat-card">
+          <strong>#{retryView.enabledCount}</strong>
+          <span>Active Policies</span>
+        </article>
+      </section>
+      <section class="content-card">
+        <p:dataTable id="retriesTable" value="#{retryView.retries}" var="item"
+                     paginator="true" rows="10" paginatorPosition="bottom"
+                     styleClass="route-table retry-table"
+                     emptyMessage="No retry policies registered. Create a route, then add its retry policy.">
+
+          <p:column headerText="Route Name" filterBy="#{item.route.routeName}" filterMatchMode="contains" sortBy="#{item.route.routeName}">
+            <h:outputText value="#{item.route.routeName}" />
+          </p:column>
+          <p:column headerText="Attempts">
+            <span class="metric-value">#{item.retryCount}</span>
+            <small> retries</small>
+          </p:column>
+          <p:column headerText="Methods">
+            <span class="method-list">
+              <ui:repeat value="#{item.methods}" var="method">
+                <span class="method-chip">#{method}</span>
+              </ui:repeat>
+            </span>
+          </p:column>
+          <p:column headerText="Backoff">
+            <h:outputText value="#{item.firstBackoffSeconds}" />–<h:outputText value="#{item.maxBackoffSeconds}" /> sec
+            <small>× #{item.backoffFactor}</small>
+          </p:column>
+          <p:column headerText="Status">
+            <span class="status-pill #{item.enabled ? 'is-active' : 'is-disabled'}">
+              <i class="pi #{item.enabled ? 'pi-check-circle' : 'pi-pause-circle'}" />
+              <h:outputText value="#{item.enabled ? 'Active' : 'Disabled'}" />
+            </span>
+          </p:column>
+          <p:column headerText="Registered By" styleClass="audit-user-column">
+            <h:outputText value="#{item.registerUser}" />
+          </p:column>
+          <p:column headerText="Created At" styleClass="audit-date-column">
+            <h:outputText value="#{retryView.formatAuditDate(item.createdAt)}" />
+          </p:column>
+          <p:column headerText="Updated At" styleClass="audit-date-column">
+            <h:outputText value="#{retryView.formatAuditDate(item.updatedAt)}" />
+          </p:column>
+          <p:column headerText="Actions" styleClass="actions-column">
+            <p:commandButton icon="pi pi-pencil" title="Edit retry policy" styleClass="ui-button-flat ui-button-secondary"
+                             process="@this" actionListener="#{retryView.openEdit(item.id)}"
+                             update=":retryDialogForm :retryMessages"
+                             oncomplete="if (!args.validationFailed) { PF('retryDialog').show(); RetryPage.refresh(); }" />
+            <p:commandButton icon="pi pi-trash" title="Delete retry policy" styleClass="ui-button-flat ui-button-danger"
+                             process="@this" actionListener="#{retryView.delete(item)}"
+                             update="@form :retryMessages">
+              <p:confirm header="Delete Retry Policy" message="Delete this retry policy and publish the change?"
+                         icon="pi pi-exclamation-triangle" />
+            </p:commandButton>
+          </p:column>
+        </p:dataTable>
+      </section>
+    </main>
+    <p:confirmDialog global="true" responsive="true">
+      <p:commandButton value="Delete" type="button" styleClass="ui-confirmdialog-yes ui-button-danger" />
+      <p:commandButton value="Cancel" type="button" styleClass="ui-confirmdialog-no ui-button-secondary" />
+    </p:confirmDialog>
+  </h:form>
+  <p:dialog widgetVar="retryDialog" header="Retry Policy Configuration"
+            modal="true" responsive="true" width="700" closeOnEscape="true" styleClass="route-dialog retry-dialog">
+    <h:form id="retryDialogForm">
+      <p:messages id="retryDialogMessages" showDetail="true" closable="true" />
+      <div class="form-grid">
+        <div class="field field-wide">
+          <p:outputLabel for="route" value="Route" />
+          <p:selectOneMenu id="route" value="#{retryView.retry.route.id}" required="true" requiredMessage="Route is required">
+            <f:selectItem itemLabel="Select a route" itemValue="#{null}" noSelectionOption="true" />
+            <f:selectItems value="#{retryView.routes}" var="route" itemLabel="#{route.routeName} (#{route.routeId})" itemValue="#{route.id}" />
+          </p:selectOneMenu>
+        </div>
+        <div class="field field-wide method-field">
+          <p:outputLabel for="methods" value="Retry on HTTP methods" />
+          <p:selectManyCheckbox id="methods" value="#{retryView.retry.methods}" layout="pageDirection" columns="4" required="true"
+                                requiredMessage="Select at least one HTTP method" onchange="RetryPage.refresh()">
+            <f:selectItems value="#{retryView.retryMethods}" var="method" itemLabel="#{method}" itemValue="#{method}" />
+          </p:selectManyCheckbox>
+          <span id="retryMethodHint" class="field-hint">Choose only methods that are safe for your upstream service.</span>
+        </div>
+        <div class="field">
+          <p:outputLabel for="retryCount" value="Retry count" />
+          <p:inputNumber id="retryCount" value="#{retryView.retry.retryCount}" minValue="1" maxValue="20" decimalPlaces="0" required="true" />
+          <span class="field-hint">Maximum extra attempts</span>
+        </div>
+        <div class="field toggle-field retry-toggle">
+          <p:outputLabel for="enabled" value="Policy status" />
+          <p:toggleSwitch id="enabled" value="#{retryView.retry.enabled}" />
+          <span>Enable policy</span>
+        </div>
+        <div class="field">
+          <p:outputLabel for="firstBackoff" value="First backoff (seconds)" />
+          <p:inputNumber id="firstBackoff" value="#{retryView.retry.firstBackoffSeconds}" minValue="0" maxValue="3600" decimalPlaces="0" required="true" />
+        </div>
+        <div class="field">
+          <p:outputLabel for="maxBackoff" value="Maximum backoff (seconds)" />
+          <p:inputNumber id="maxBackoff" value="#{retryView.retry.maxBackoffSeconds}" minValue="0" maxValue="3600" decimalPlaces="0" required="true" />
+        </div>
+        <div class="field field-wide">
+          <p:outputLabel for="backoffFactor" value="Backoff multiplier" />
+          <p:inputNumber id="backoffFactor" value="#{retryView.retry.backoffFactor}" minValue="1" maxValue="10" decimalPlaces="0" required="true" />
+          <span class="field-hint">Each delay grows by this factor, up to the maximum.</span>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <p:commandButton value="Cancel" type="button" styleClass="ui-button-secondary ui-button-outlined" onclick="PF('retryDialog').hide()" />
+        <p:commandButton value="Save and Publish" icon="pi pi-check" process="@form" actionListener="#{retryView.save}"
+                         update="@form :retryListForm :retryMessages" oncomplete="if (!args.validationFailed) PF('retryDialog').hide()" />
+      </div>
+    </h:form>
+  </p:dialog>
+    <ui:include src="/panel/includes/page-help.xhtml"><ui:param name="helpKey" value="retries" /></ui:include>
+  </ui:define>
+</ui:composition>

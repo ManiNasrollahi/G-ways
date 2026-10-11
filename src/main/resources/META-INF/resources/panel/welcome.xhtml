@@ -1,0 +1,48 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html" xmlns:p="primefaces" xmlns:ui="jakarta.faces.facelets">
+  <h:outputStylesheet name="/panel/css/welcome.css" />
+  <main class="welcome-page">
+    <section class="welcome-hero" aria-labelledby="welcome-title">
+      <span class="welcome-symbol" aria-hidden="true"><h:graphicImage name="/panel/images/g-ways-symbol.png" alt="" /></span>
+      <span class="eyebrow">G-WAYS / CONTROL PLANE</span>
+      <h1 id="welcome-title">Your gateway, under control.</h1>
+      <p>Design traffic policies, protect upstream services, and manage every route from one focused workspace.</p>
+      <div class="welcome-actions">
+        <span class="welcome-hint"><i class="pi pi-compass" aria-hidden="true" /> Start from the navigation menu</span>
+        <button class="welcome-help-button" type="button" onclick="PF('pageHelpDialog').show()"><i class="pi pi-question-circle" aria-hidden="true" /> How to use</button>
+      </div>
+    </section>
+    <section class="welcome-features" aria-label="Gateway capabilities">
+      <article class="welcome-card">
+        <span class="welcome-icon" aria-hidden="true"><i class="pi pi-directions" /></span>
+        <span class="welcome-number" aria-hidden="true">01 / TRAFFIC</span>
+        <h2>Route management</h2>
+        <p>Define destinations with path, method, host, header, query, cookie, and time-based predicates.</p>
+      </article>
+      <article class="welcome-card">
+        <span class="welcome-icon" aria-hidden="true"><i class="pi pi-sliders-h" /></span>
+        <span class="welcome-number" aria-hidden="true">02 / POLICIES</span>
+        <h2>Request policies</h2>
+        <p>Apply filters, rate limits, retries, circuit breakers, and trusted proxy rules per route.</p>
+      </article>
+      <article class="welcome-card">
+        <span class="welcome-icon" aria-hidden="true"><i class="pi pi-shield" /></span>
+        <span class="welcome-number" aria-hidden="true">03 / SECURITY</span>
+        <h2>Secure by default</h2>
+        <p>Manage global CORS, blacklist entries and audit information in one place.</p>
+      </article>
+    </section>
+    <section class="welcome-next" aria-label="Suggested first steps">
+      <div>
+        <span class="eyebrow">QUICK START</span>
+        <h2>Build your first gateway route</h2>
+        <p>Create a route, point it to an upstream service, then add the policies your traffic needs.</p>
+      </div>
+      <div class="welcome-steps">
+        <span><b>01</b> Define a route</span>
+        <span><b>02</b> Add predicates</span>
+        <span><b>03</b> Publish policies</span>
+      </div>
+    </section>
+  </main>
+  <ui:include src="/panel/includes/page-help.xhtml"><ui:param name="helpKey" value="welcome" /></ui:include>
+</ui:composition>

@@ -1,0 +1,66 @@
+<ui:composition template="/panel/control-plane.xhtml" xmlns:h="jakarta.faces.html" xmlns:p="primefaces" xmlns:f="jakarta.faces.core" xmlns:ui="jakarta.faces.facelets">
+  <ui:define name="content">
+    <p:growl id="messages" showDetail="true" life="5000" />
+    <h:form id="corsForm">
+      <main class="page-shell cors-page">
+        <header class="page-header">
+          <div>
+            <span class="eyebrow">CONTROL PLANE</span>
+            <h1>Global CORS</h1>
+            <p>Configure browser access policy for all gateway routes</p>
+          </div>
+          <p:commandButton value="How to use" icon="pi pi-question-circle" type="button" styleClass="help-button" onclick="PF('pageHelpDialog').show()" />
+        </header>
+        <section class="content-card cors-card">
+          <div class="cors-card-heading">
+            <div>
+              <h2>Browser access policy</h2>
+              <p>Define which frontend applications can call the gateway and which response headers they can read.</p>
+            </div>
+            <span class="cors-status"><i class="pi pi-globe" /> Global policy</span>
+          </div>
+          <div class="audit-meta cors-audit-meta">
+            <span><strong>Registered by</strong> <h:outputText value="#{gatewayCorsView.settings.registerUser}" /></span>
+            <span><strong>Created</strong> <h:outputText value="#{gatewayCorsView.formatAuditDate(gatewayCorsView.settings.createdAt)}" /></span>
+            <span><strong>Updated</strong> <h:outputText value="#{gatewayCorsView.formatAuditDate(gatewayCorsView.settings.updatedAt)}" /></span>
+          </div>
+          <div class="form-grid cors-form-grid">
+            <div class="field field-wide">
+              <p:outputLabel for="origins" value="Allowed origins" />
+              <p:chips id="origins" value="#{gatewayCorsView.settings.allowedOrigins}"  requiredMessage="At least one allowed origin is required" placeholder="https://app.example.com" />
+              <small class="field-hint">Press Enter after each origin. Do not use * with credentials.</small>
+            </div>
+            <div class="field field-wide">
+              <p:outputLabel for="methods" value="Allowed methods" />
+              <p:chips id="methods" value="#{gatewayCorsView.settings.allowedMethods}"  requiredMessage="Allowed methods are required" placeholder="GET" />
+              <small class="field-hint">Example: GET, POST, PUT, PATCH, DELETE, OPTIONS</small>
+            </div>
+            <div class="field field-wide">
+              <p:outputLabel for="headers" value="Allowed headers" />
+              <p:chips id="headers" value="#{gatewayCorsView.settings.allowedHeaders}"  requiredMessage="Allowed headers are required" placeholder="Content-Type" />
+              <small class="field-hint">Example: Authorization, Content-Type, X-Request-ID</small>
+            </div>
+            <div class="field field-wide">
+              <p:outputLabel for="exposed" value="Exposed headers" />
+              <p:chips id="exposed" value="#{gatewayCorsView.settings.exposedHeaders}" placeholder="X-Request-ID" />
+              <small class="field-hint">Headers that browser JavaScript is allowed to read.</small>
+            </div>
+            <div class="field toggle-field">
+              <p:outputLabel for="credentials" value="Credentials" />
+              <p:toggleSwitch id="credentials" value="#{gatewayCorsView.settings.allowCredentials}" />
+              <span>Allow cookies and credentials</span>
+            </div>
+            <div class="field">
+              <p:outputLabel for="maxAge" value="Preflight cache (seconds)" />
+              <p:inputNumber id="maxAge" value="#{gatewayCorsView.settings.maxAge}" minValue="0" decimalPlaces="0" />
+            </div>
+          </div>
+          <div class="dialog-actions cors-actions">
+            <p:commandButton value="Save and Publish" icon="pi pi-check" actionListener="#{gatewayCorsView.save}" process="@form" update="@form messages" />
+          </div>
+        </section>
+      </main>
+    </h:form>
+    <ui:include src="/panel/includes/page-help.xhtml"><ui:param name="helpKey" value="cors" /></ui:include>
+  </ui:define>
+</ui:composition>

@@ -1,0 +1,25 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html" xmlns:ui="jakarta.faces.facelets">
+  <header class="application-header">
+    <div class="header-identity">
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-controls="application-sidebar" aria-expanded="false" aria-label="Open navigation menu">
+        <span aria-hidden="true">☰</span>
+      </button>
+      <h:link outcome="/panel/index" styleClass="application-brand">
+        <h:graphicImage name="/panel/images/g-ways-symbol.png" styleClass="header-brand-logo" alt="" />
+        <span class="header-brand-copy"><strong>G-WAYS</strong><small>Gateway &amp; Traffic Management Platform</small></span>
+      </h:link>
+    </div>
+    <div class="header-context">
+      <div class="header-user">
+        <span class="workspace-badge">Welcome, #{defineRouteView.user.firstName}</span>
+        <span class="workspace-icon" aria-hidden="true"><i class="pi pi-user" /></span>
+      </div>
+      <form class="logout-form" method="post" action="#{request.contextPath}/logout">
+        <button class="logout-button" type="submit" title="Sign out">
+          <span aria-hidden="true">↪</span>
+          <span>Logout</span>
+        </button>
+      </form>
+    </div>
+  </header>
+</ui:composition>
