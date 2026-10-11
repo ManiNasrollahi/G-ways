@@ -144,3 +144,9 @@ Use the Rate Limits page to associate an enabled policy with this route, for exa
 - Backend checks establish TCP connectivity. They do not verify application health or select a backend for routing.
 - Rate-limit state uses local memory and is not shared across gateway instances.
 - Configuration refresh applies to the instance handling the administration change. Direct SQL updates require an explicit refresh or restart to update cached routing state.
+
+- ## Contribute
+
+Contributions are so welcome!
+
+If you find a bug, have a feature request, or want to improve the project, feel free to open an issue or please submit a pull request XD
