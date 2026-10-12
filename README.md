@@ -49,7 +49,7 @@ Administration services refresh the affected runtime state after successful conf
 | Java | JDK 25 |
 | Application | Spring Boot 4.1.1 |
 | Gateway | Spring Cloud Gateway Server Web MVC; Spring Cloud BOM 2025.1.3 |
-| Persistence | Spring Data JPA / Hibernate, Microsoft SQL Server |
+| Persistence | Spring Data JPA / Hibernate |
 | Administration UI | Jakarta Faces, PrimeFaces, JoinFaces 6.1.0 |
 | Authentication | Spring Security, BCrypt password encoding |
 | Traffic policies | Bucket4j 8.16.0, Caffeine, Spring Cloud Circuit Breaker / Resilience4j |
@@ -61,19 +61,19 @@ Dependency declarations are maintained in [pom.xml](pom.xml).
 
 ### 1. Prepare the environment
 
-Install JDK 25 and make sure `JAVA_HOME` points to it. Provide a running Microsoft SQL Server instance accessible from the gateway. The included Maven Wrapper downloads Maven and dependencies on first use, so network access is required.
+Install JDK 25 and make sure `JAVA_HOME` points to it. The included Maven Wrapper downloads Maven and dependencies on first use, so network access is required.
 
 Clone this repository using its actual clone URL, then open a terminal in the directory containing `pom.xml` and `mvnw`.
 
 ### 2. Create the database
 
-Run this in SQL Server using an account allowed to create databases:
+Run this in DB using an account allowed to create databases:
 
 ```sql
 CREATE DATABASE GWAYS;
 ```
 
-Provide a SQL Server login mapped to this database with permissions to create and alter the application schema and read/write application data.
+Provide a SQL login mapped to this database with permissions to create and alter the application schema and read/write application data.
 
 On startup, Spring SQL initialization executes [V1__create_gateway_schema.sql](src/main/resources/db/migration/V1__create_gateway_schema.sql). Hibernate then validates the schema (`ddl-auto: validate`). Despite its directory name, this script is run by Spring SQL initialization, not Flyway.
 
