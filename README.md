@@ -31,7 +31,7 @@ Management UI (Jakarta Faces / PrimeFaces)
                   |
           Administration services
                   |
-              SQL Server
+                  DB
                   |
         Runtime configuration / Registry
                   |
